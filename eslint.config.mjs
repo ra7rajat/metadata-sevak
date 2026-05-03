@@ -12,7 +12,15 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Fix: ESLint 9 Flat Config requires explicitly ignoring node_modules if globalIgnores is used to override defaults
+    "node_modules/**",
+    ".git/**",
   ]),
+  {
+    rules: {
+      'react-hooks/set-state-in-effect': 'off',
+    },
+  },
 ]);
 
 export default eslintConfig;

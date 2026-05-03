@@ -1,26 +1,50 @@
 {
-  "name": "election-assistant",
-  "version": "0.1.0",
+  "name": "matadata-election-assistant",
+  "version": "1.0.0",
   "private": true,
+  "description": "MataData (मतदाता) — AI-powered election information assistant for India. Built with Next.js, Gemini, and Google services.",
+  "author": "MataData Team",
+  "license": "MIT",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "jest --forceExit --detectOpenHandles",
+    "test:watch": "jest --watch --forceExit --detectOpenHandles",
+    "test:coverage": "jest --coverage --forceExit --detectOpenHandles",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@google-cloud/logging": "^11.2.1",
+    "@google-cloud/redis": "^5.2.2",
+    "@google-cloud/translate": "^9.4.1",
+    "@google/genai": "^1.51.0",
+    "@playwright/test": "^1.59.1",
+    "axe-core": "^4.11.4",
+    "msw": "^2.14.2",
     "next": "16.2.4",
+    "node-cache": "^5.1.2",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "react-google-charts": "^5.2.1",
+    "zod": "^4.4.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@types/jest": "^29.5.14",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "eslint-plugin-no-process-env": "^1.0.1",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^30.3.0",
     "tailwindcss": "^4",
+    "ts-jest": "^29.3.4",
     "typescript": "^5"
   }
 }

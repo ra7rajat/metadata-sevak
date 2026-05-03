@@ -1,0 +1,55 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Testing
+coverage
+
+# Next.js
+.next
+out
+
+# Environment variables (don't copy secrets into image)
+.env
+.env.local
+.env.*
+!.env.example
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDEs
+.vscode
+.idea
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Git
+.git
+.gitignore
+
+# Build artifacts we don't need
+dist
+
+# Documentation
+*.md
+!README.md
+
+# Test files (skip in production image)
+tests/
+__tests__/
+*.test.ts
+*.spec.ts
+jest.config.*
+playwright.config.*
