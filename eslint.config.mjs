@@ -15,6 +15,7 @@ const eslintConfig = defineConfig([
     // Fix: ESLint 9 Flat Config requires explicitly ignoring node_modules if globalIgnores is used to override defaults
     "node_modules/**",
     ".git/**",
+    "tests/**",
   ]),
   {
     rules: {

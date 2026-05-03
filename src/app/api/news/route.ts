@@ -2,6 +2,12 @@ import { NextRequest } from 'next/server';
 import { checkClaim, fetchMultiSourceNews } from '@/tools';
 import type { NewsArticle, NewsSource } from '@/types';
 
+/**
+ * Enriches news sources with fact-check verdicts for each article.
+ * Calls Google Fact Check API for each article title and snippet.
+ * @param sources - Array of news sources to enrich.
+ * @returns Sources with fact-check data attached.
+ */
 async function enrichSources(sources: NewsSource[]): Promise<NewsSource[]> {
   return Promise.all(
     sources.map(async (source) => ({

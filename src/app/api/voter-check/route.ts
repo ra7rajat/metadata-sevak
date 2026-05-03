@@ -1,6 +1,19 @@
 import { NextRequest } from 'next/server';
 import { searchVoterRoll, findPollingBooth } from '@/tools';
 
+/**
+ * Voter Check API - Searches electoral roll by name/district or EPIC.
+ * 
+ * Query params (method=epic):
+ * - epic: EPIC number to find polling booth
+ * 
+ * Query params (default):
+ * - name: Voter name
+ * - state: State name
+ * - district: District name
+ * 
+ * Returns voter records from ECI database.
+ */
 export async function GET(request: NextRequest): Promise<Response> {
   const params = request.nextUrl.searchParams;
   const method = params.get('method');

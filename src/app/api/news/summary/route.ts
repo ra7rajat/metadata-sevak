@@ -2,11 +2,19 @@ import { NextRequest } from 'next/server';
 import { getGenAIClient, resolveModel } from '@/lib/gemini';
 import type { NewsArticle } from '@/types';
 
+/**
+ * Request body for news summary comparison.
+ */
 interface SummaryBody {
   leftArticle: NewsArticle;
   rightArticle: NewsArticle;
 }
 
+/**
+ * News Summary API - Uses Gemini to compare two news articles.
+ * Extracts agreed facts and differing perspectives between sources.
+ * Helps users understand bias and find common ground.
+ */
 export async function POST(request: NextRequest): Promise<Response> {
   const body = (await request.json()) as SummaryBody;
   const client = getGenAIClient();

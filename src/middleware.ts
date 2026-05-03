@@ -8,11 +8,29 @@ const rateLimitStore = new Map<string, { count: number; windowStart: number }>()
 
 const RATE_LIMIT_MAX = 20;
 const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
+const CLEANUP_INTERVAL_MS = 5 * 60_000; // 5 minutes
+
+/**
+ * Cleanup old rate limit entries periodically
+ */
+let lastCleanup = Date.now();
+function cleanupRateLimitStore() {
+  const now = Date.now();
+  if (now - lastCleanup > CLEANUP_INTERVAL_MS) {
+    for (const [ip, entry] of rateLimitStore) {
+      if (now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
+        rateLimitStore.delete(ip);
+      }
+    }
+    lastCleanup = now;
+  }
+}
 
 /**
  * Middleware to apply security headers and rate limiting to all API routes
  */
 export function middleware(request: NextRequest) {
+  cleanupRateLimitStore();
   const { pathname } = request.nextUrl;
 
   // Only apply to /api routes

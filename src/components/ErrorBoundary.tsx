@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { useLanguage } from './providers/LanguageProvider';
 
 interface ErrorBoundaryProps {
@@ -63,12 +64,12 @@ function ErrorFallback({ error, onReset }: { error?: Error; onReset: () => void 
           >
             {isHindi ? 'पुनः प्रयास करें' : 'Try Again'}
           </button>
-          <a
+          <Link
             href="/"
             className="px-6 py-3 border border-white/20 text-white rounded-full font-medium hover:bg-white/5 transition-all"
           >
             {isHindi ? 'होम पेज पर जाएं' : 'Go to Home'}
-          </a>
+          </Link>
         </div>
 
         <p className="text-xs text-gray-600">

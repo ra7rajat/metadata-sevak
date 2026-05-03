@@ -110,5 +110,115 @@ describe('eciScraper', () => {
       const result = await getElectionSchedule('');
       expect(result.success).toBe(false);
     });
+
+    it('handles state only (no district) validation in searchVoterRoll', async () => {
+      const result = await searchVoterRoll('Rahul', '', 'District');
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.code).toBe('INVALID_INPUT');
+      }
+    });
+
+    it('handles district only (no state) validation in searchVoterRoll', async () => {
+      const result = await searchVoterRoll('Rahul', 'Karnataka', '');
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.code).toBe('INVALID_INPUT');
+      }
+    });
+
+    it('handles 429 rate limit response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 429,
+      });
+      
+      const resultPromise = searchVoterRoll('Rahul', 'Karnataka', 'Bangalore');
+      jest.runAllTimers();
+      const result = await resultPromise;
+      
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.code).toBe('RATE_LIMITED');
+      }
+    });
+
+    it('handles non-ok API response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+      });
+      
+      const resultPromise = searchVoterRoll('Anjali', 'Karnataka', 'Bangalore');
+      jest.runAllTimers();
+      const result = await resultPromise;
+      
+      expect(result.success).toBe(true);
+    });
+
+    it('handles empty response array', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
+      
+      const resultPromise = searchVoterRoll('NonExistentName', 'Karnataka', 'Bangalore');
+      jest.runAllTimers();
+      const result = await resultPromise;
+      
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.totalResults).toBe(0);
+      }
+    });
+
+    it('handles response with missing optional fields', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          total: 1,
+          data: [{ name: 'Test' }],
+        }),
+      });
+      
+      const resultPromise = searchVoterRoll('Test', 'Karnataka', 'Bangalore');
+      jest.runAllTimers();
+      const result = await resultPromise;
+      
+      expect(result.success).toBe(true);
+    });
+
+    it('handles gender field variations', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          total: 3,
+          data: [
+            { name: 'Male', gender: 'M' },
+            { name: 'Female', gender: 'F' },
+            { name: 'Other', gender: 'O' },
+          ],
+        }),
+      });
+      
+      const resultPromise = searchVoterRoll('Test', 'Karnataka', 'Bangalore');
+      jest.runAllTimers();
+      const result = await resultPromise;
+      
+      expect(result.success).toBe(true);
+    });
+
+    it('handles missing response fields gracefully', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({}),
+      });
+      
+      const resultPromise = searchVoterRoll('Test', 'Karnataka', 'Bangalore');
+      jest.runAllTimers();
+      const result = await resultPromise;
+      
+      expect(result.success).toBe(true);
+    });
   });
 });

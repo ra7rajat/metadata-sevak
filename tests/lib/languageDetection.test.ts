@@ -5,7 +5,15 @@
 
 import { detectLanguage, getLanguageName } from '@/lib/languageDetection';
 
+const mockFetch = jest.fn();
+global.fetch = mockFetch;
+
 describe('languageDetection', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    delete process.env.GOOGLE_API_KEY;
+  });
+
   describe('getLanguageName', () => {
     it('should return English for en', () => {
       expect(getLanguageName('en')).toBe('English');
@@ -120,6 +128,79 @@ describe('languageDetection', () => {
     it('should handle whitespace only', async () => {
       const lang = await detectLanguage('   ');
       expect(['en', 'hi', 'bn', 'ta', 'te', 'mr', 'gu', 'kn', 'ml', 'pa', 'or', 'ur']).toContain(lang);
+    });
+
+    it('uses API when GOOGLE_API_KEY is set and returns supported language', async () => {
+      process.env.GOOGLE_API_KEY = 'test-key';
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce({
+          data: { detections: [[{ language: 'hi', confidence: 0.9 }]] },
+        }),
+      });
+      
+      const lang = await detectLanguage('नमस्ते');
+      expect(mockFetch).toHaveBeenCalled();
+      expect(lang).toBe('hi');
+    });
+
+    it('falls back to regex when API returns unsupported language', async () => {
+      process.env.GOOGLE_API_KEY = 'test-key';
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce({
+          data: { detections: [[{ language: 'fr', confidence: 0.9 }]] },
+        }),
+      });
+      
+      const lang = await detectLanguage('Hello');
+      expect(lang).toBe('en');
+    });
+
+    it('falls back to regex when API returns non-ok status', async () => {
+      process.env.GOOGLE_API_KEY = 'test-key';
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+      });
+      
+      const lang = await detectLanguage('नमस्ते');
+      expect(lang).toBe('hi');
+    });
+
+    it('falls back to regex when API throws error', async () => {
+      process.env.GOOGLE_API_KEY = 'test-key';
+      mockFetch.mockRejectedValueOnce(new Error('network error'));
+      
+      const lang = await detectLanguage('नमस्ते');
+      expect(lang).toBe('hi');
+    });
+
+    it('falls back to regex when API returns empty detection', async () => {
+      process.env.GOOGLE_API_KEY = 'test-key';
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce({
+          data: { detections: [[]] },
+        }),
+      });
+      
+      const lang = await detectLanguage('नमस्ते');
+      expect(lang).toBe('hi');
+    });
+
+    it('handles very long text by truncating', async () => {
+      process.env.GOOGLE_API_KEY = 'test-key';
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce({
+          data: { detections: [[{ language: 'hi' }]] },
+        }),
+      });
+      
+      const longText = 'नमस्ते'.repeat(200);
+      await detectLanguage(longText);
+      expect(mockFetch).toHaveBeenCalled();
     });
   });
 });
