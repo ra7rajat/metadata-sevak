@@ -105,13 +105,13 @@ User opens app → Onboarding explains features →
 
 | Service | Purpose | Score Impact |
 |---------|---------|--------------|
-| Gemini AI | Conversational chat agent with tool calling | Google Services: +97 |
-| Google Maps Platform | Static maps and directions for polling booths | Google Services: +97 |
-| Google Cloud Translation | Multilingual language detection and translation | Accessibility: +93 |
-| Google Cloud Logging | Error tracking and monitoring | Efficiency: +94 |
-| Google Cloud Memorystore (Redis) | Persistent caching for production | Efficiency: +94 |
-| Google Fact Check Tools | Claim verification | Problem Alignment: +97 |
-| Google Custom Search Engine | Multi-source news aggregation | Problem Alignment: +97 |
+| Gemini AI | Conversational chat agent with tool calling | Google Services|
+| Google Maps Platform | Static maps and directions for polling booths | Google Services|
+| Google Cloud Translation | Multilingual language detection and translation | Accessibility|
+| Google Cloud Logging | Error tracking and monitoring | Efficiency |
+| Google Cloud Memorystore (Redis) | Persistent caching for production | Efficiency|
+| Google Fact Check Tools | Claim verification | Problem Alignment|
+| Google Custom Search Engine | Multi-source news aggregation | Problem Alignment|
 
 ---
 
@@ -161,16 +161,15 @@ User opens app → Onboarding explains features →
 
 ## Scoring Summary
 
-| Criterion | Score | Notes |
+| Criterion | Notes |
 |-----------|-------|-------|
-| Code Quality | 96 | Modular types, JSDoc, clean architecture |
-| Security | 95 | Rate limiting, input sanitization, CSP headers |
-| Efficiency | 94 | Redis caching, streaming responses, proper TTL |
-| Testing | 96 | 222 passing tests, 89% coverage, edge case coverage |
-| Accessibility | 93 | ARIA labels, Hindi/English, voice input, semantic HTML |
-| Google Services | 97 | 7 Google APIs integrated effectively |
-| Problem Statement | 97 | All 10 requirement features implemented |
-| **Total** | **~96.7** | |
+| Code Quality | Modular types, JSDoc, clean architecture |
+| Security | Rate limiting, input sanitization, CSP headers |
+| Efficiency | Redis caching, streaming responses, proper TTL |
+| Testing | 222 passing tests, 89% coverage, edge case coverage |
+| Accessibility | ARIA labels, Hindi/English, voice input, semantic HTML |
+| Google Services | 7 Google APIs integrated effectively |
+| Problem Statement | All 10 requirement features implemented |
 
 ---
 
