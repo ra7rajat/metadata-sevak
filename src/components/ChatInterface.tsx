@@ -7,13 +7,13 @@
  * @module components/ChatInterface
  */
 
-import dynamic from 'next/dynamic';
-import React, { useState, useRef, useEffect, useCallback, type FormEvent, type KeyboardEvent } from 'react';
-import MessageBubble from '@/components/MessageBubble';
-const VoiceButton = dynamic(() => import('@/components/VoiceButton'), { ssr: false });
+import React, { useState, useRef, useEffect, useCallback, type FormEvent } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { useVoiceChat } from '@/hooks/useVoiceChat';
 import type { ChatMessage, ConversationTurn } from '@/types';
+import WelcomeScreen from '@/components/WelcomeScreen';
+import MessageList from '@/components/MessageList';
+import ChatInput from '@/components/ChatInput';
 
 /** Generates a unique message ID */
 function generateId(): string {
@@ -300,7 +300,7 @@ export default function ChatInterface() {
    * - Enter: Submit message
    * - Shift+Enter: New line
    */
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e as unknown as FormEvent);
@@ -327,25 +327,8 @@ export default function ChatInterface() {
   return (
     <div className="flex flex-col h-full min-h-0" role="main">
       {/* ── Chat Messages Region ── */}
-      <div
-        ref={chatRegionRef}
-        className="flex-1 overflow-y-auto px-4 md:px-8 py-6 scroll-smooth"
-        role="log"
-        aria-label="Chat messages"
-        aria-live="polite"
-        aria-relevant="additions"
-        tabIndex={0}
-      >
-        {!hasMessages && <WelcomeScreen onSelectSuggestion={(text) => setInput(text)} />}
-
-        <div role="list" aria-label="Conversation">
-          {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
-          ))}
-        </div>
-
-        <div ref={messagesEndRef} aria-hidden="true" />
-      </div>
+      <MessageList messages={messages} />
+      {!hasMessages && <WelcomeScreen onSelectSuggestion={(text) => setInput(text)} />}
 
       {/* ── Live Voice Transcript ── */}
       {voiceState !== 'idle' && voiceState !== 'error' && (
@@ -367,183 +350,42 @@ export default function ChatInterface() {
       )}
 
       {/* ── Input Area ── */}
-      <footer className="relative border-t border-white/10 bg-black/20 backdrop-blur-xl px-4 md:px-8 py-4">
-        <form
-          onSubmit={handleSubmit}
-          className="max-w-4xl mx-auto flex items-end gap-3"
-          aria-label="Send a message"
+      <ChatInput
+        input={input}
+        onInputChange={setInput}
+        onSubmit={handleSubmit}
+        isLoading={isLoading}
+        voiceState={voiceState}
+        inputRef={inputRef}
+        placeholder={detectedLang === 'hi' ? "चुनाव, मतदान केंद्र, या वोटर आईडी के बारे में पूछें..." : "Ask about elections, voter registration, polling booths... (English / हिंदी)"}
+        disabled={isLoading || voiceState !== 'idle'}
+        onVoiceStart={startListening}
+        onVoiceStop={stopListening}
+        voiceError={voiceError}
+      />
+      <p className="text-center text-[11px] text-gray-500 mt-3 max-w-4xl mx-auto">
+        MataData may occasionally provide inaccurate information. Always verify with{' '}
+        <a
+          href="https://eci.gov.in"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-indigo-400 hover:text-indigo-300 underline transition-colors"
         >
-          <label htmlFor="chat-input" className="sr-only">
-            Type your message in English or Hindi
-          </label>
-          <textarea
-            ref={inputRef}
-            id="chat-input"
-            value={input}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            placeholder={detectedLang === 'hi' ? "चुनाव, मतदान केंद्र, या वोटर आईडी के बारे में पूछें..." : "Ask about elections, voter registration, polling booths... (English / हिंदी)"}
-            disabled={isLoading || voiceState !== 'idle'}
-            rows={1}
-            className="
-              flex-1 resize-none rounded-xl bg-white/10 border border-white/20
-              px-4 py-3 text-sm md:text-base text-gray-100
-              placeholder-gray-400 outline-none
-              focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50
-              disabled:opacity-50 disabled:cursor-not-allowed
-              transition-all duration-200
-            "
-            aria-describedby="input-hint"
-            autoComplete="off"
-            spellCheck="true"
-          />
-          <span id="input-hint" className="sr-only">
-            Press Enter to send, Shift+Enter for a new line
-          </span>
-
-          <div className="flex gap-2 mb-0.5">
-            {isVoiceSupported && (
-              <VoiceButton
-                state={voiceState}
-                onStart={startListening}
-                onStop={stopListening}
-                error={voiceError}
-                disabled={isLoading}
-              />
-            )}
-
-            <button
-              type="submit"
-              disabled={isLoading || (!input.trim() && voiceState === 'idle') || voiceState !== 'idle'}
-            className="
-              flex-shrink-0 w-11 h-11 rounded-xl
-              bg-gradient-to-br from-indigo-600 to-purple-600
-              text-white flex items-center justify-center
-              hover:from-indigo-500 hover:to-purple-500
-              disabled:opacity-40 disabled:cursor-not-allowed
-              transition-all duration-200 shadow-lg
-              focus:outline-none focus:ring-2 focus:ring-indigo-500/50
-              active:scale-95
-            "
-            aria-label="Send message"
-          >
-            {isLoading ? (
-              <svg
-                className="w-5 h-5 animate-spin"
-                viewBox="0 0 24 24"
-                fill="none"
-                aria-hidden="true"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                />
-              </svg>
-            ) : (
-              <svg
-                className="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 19V5m0 0l-7 7m7-7l7 7"
-                />
-              </svg>
-            )}
-          </button>
-          </div>
-        </form>
-
-        <p className="text-center text-[11px] text-gray-500 mt-3 max-w-4xl mx-auto">
-          MataData may occasionally provide inaccurate information. Always verify with{' '}
-          <a
-            href="https://eci.gov.in"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-indigo-400 hover:text-indigo-300 underline transition-colors"
-          >
-            ECI
-          </a>{' '}
-          and{' '}
-          <a
-            href="https://nvsp.in"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-indigo-400 hover:text-indigo-300 underline transition-colors"
-          >
-            NVSP
-          </a>
-          .
-        </p>
-      </footer>
-    </div>
-  );
-}
-
-/**
- * Welcome screen shown when no messages exist yet.
- * Displays the app name, tagline, and quick-start suggestions.
- */
-function WelcomeScreen({ onSelectSuggestion }: { onSelectSuggestion: (text: string) => void }) {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 py-12 animate-fade-in">
-      {/* Logo */}
-      <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-500 via-white to-green-600 flex items-center justify-center shadow-2xl mb-6 animate-float">
-        <span className="text-3xl font-bold text-gray-900">म</span>
-      </div>
-
-      <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-        Welcome to MataData
-      </h2>
-      <p className="text-gray-400 text-sm md:text-base mb-8 max-w-md" lang="hi">
-        मतदाता — Your Election Information Assistant
+          ECI
+        </a>{' '}
+        and{' '}
+        <a
+          href="https://nvsp.in"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-indigo-400 hover:text-indigo-300 underline transition-colors"
+        >
+          NVSP
+        </a>
+        .
       </p>
-
-      {/* Quick suggestions */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg w-full" role="list" aria-label="Suggested questions">
-        {[
-          { emoji: '🗳️', text: 'How do I register to vote?' },
-          { emoji: '📍', text: 'Find my polling booth' },
-          { emoji: '📋', text: 'मतदाता पहचान पत्र कैसे बनवाएं?' },
-          { emoji: '📰', text: 'Latest election schedule' },
-        ].map((suggestion) => (
-          <button
-            key={suggestion.text}
-            type="button"
-            className="
-              flex items-center gap-3 px-4 py-3 rounded-xl
-              bg-white/5 border border-white/10 text-left
-              hover:bg-white/10 hover:border-white/20
-              transition-all duration-200 group
-              focus:outline-none focus:ring-2 focus:ring-indigo-500/50
-            "
-            role="listitem"
-            aria-label={`Ask: ${suggestion.text}`}
-            onClick={() => onSelectSuggestion(suggestion.text)}
-          >
-            <span className="text-xl group-hover:scale-110 transition-transform" aria-hidden="true">
-              {suggestion.emoji}
-            </span>
-            <span className="text-sm text-gray-300 group-hover:text-white transition-colors">
-              {suggestion.text}
-            </span>
-          </button>
-        ))}
-      </div>
     </div>
   );
 }
+
+

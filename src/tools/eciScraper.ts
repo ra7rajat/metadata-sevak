@@ -10,6 +10,7 @@
  */
 
 import NodeCache from 'node-cache';
+import { rateLimit } from '@/lib/rateLimiter';
 import type {
   VoterRollResult,
   VoterRecord,
@@ -21,30 +22,6 @@ import type {
 
 /** Cache with 1-hour TTL for voter data, checks expiry every 10 minutes */
 const eciCache = new NodeCache({ stdTTL: 3600, checkperiod: 600 });
-
-// ─── Rate Limiter ───────────────────────────────────────────────────────────
-
-/** Timestamp of the last request to ECI services */
-let lastRequestTime = 0;
-
-/** Minimum delay between requests in ms (2 seconds) */
-const REQUEST_DELAY_MS = 2000;
-
-/**
- * Enforces a 2-second delay between consecutive requests to ECI services.
- * Prevents overwhelming the government servers and avoids IP blocks.
- */
-async function enforceRateLimit(): Promise<void> {
-  const now = Date.now();
-  const elapsed = now - lastRequestTime;
-
-  if (elapsed < REQUEST_DELAY_MS) {
-    const waitTime = REQUEST_DELAY_MS - elapsed;
-    await new Promise((resolve) => setTimeout(resolve, waitTime));
-  }
-
-  lastRequestTime = Date.now();
-}
 
 // ─── ECI API Endpoints ──────────────────────────────────────────────────────
 
@@ -119,7 +96,7 @@ export async function searchVoterRoll(
 
   // ── Fetch from ECI ──
   try {
-    await enforceRateLimit();
+    await rateLimit({ delayMs: 2000 });
 
     console.log(`[ECI Scraper] Searching voter roll: name=${name}, state=${state}, district=${district}`);
 
@@ -253,7 +230,7 @@ export async function getElectionSchedule(
 
   // ── Fetch from ECI ──
   try {
-    await enforceRateLimit();
+    await rateLimit({ delayMs: 2000 });
 
     console.log(`[ECI Scraper] Fetching election schedule for: ${state}`);
 

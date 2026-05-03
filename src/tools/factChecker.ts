@@ -21,6 +21,7 @@
 
 import { getNewsCache, buildCacheKey } from '@/lib/newsCache';
 import { getEnvVar } from '@/config/validateEnv';
+import { normalizeRating, extractCheckableClaims } from '@/lib/factCheckUtils';
 import type {
   ClaimCheckResult,
   FactCheckVerdict,
@@ -247,99 +248,5 @@ function parseFactCheckResponse(data: GoogleFactCheckResponse): FactCheckVerdict
     }
   }
 
-  return verdicts;
-}
-
-/**
- * Normalizes a fact-check textual rating to a badge category.
- *
- * Maps the wide variety of textual ratings (True, Mostly True,
- * Half True, False, Pants on Fire, etc.) to four categories
- * for consistent badge display.
- *
- * @param rating - Raw textual rating from the fact-checker.
- * @returns Normalized rating category.
- */
-function normalizeRating(
-  rating: string
-): 'TRUE' | 'FALSE' | 'MISSING_CONTEXT' | 'UNVERIFIED' {
-  const lower = rating.toLowerCase();
-
-  // True ratings
-  if (
-    lower === 'true' ||
-    lower === 'correct' ||
-    lower === 'accurate' ||
-    lower.includes('mostly true')
-  ) {
-    return 'TRUE';
-  }
-
-  // False ratings
-  if (
-    lower === 'false' ||
-    lower === 'fake' ||
-    lower === 'incorrect' ||
-    lower.includes('pants on fire') ||
-    lower.includes('mostly false') ||
-    lower.includes('completely false')
-  ) {
-    return 'FALSE';
-  }
-
-  // Mixed / context-dependent ratings
-  if (
-    lower.includes('half true') ||
-    lower.includes('misleading') ||
-    lower.includes('missing context') ||
-    lower.includes('partly') ||
-    lower.includes('exaggerated') ||
-    lower.includes('mixture')
-  ) {
-    return 'MISSING_CONTEXT';
-  }
-
-  return 'UNVERIFIED';
-}
-
-/**
- * Extracts potentially checkable factual claims from article text.
- *
- * Uses heuristics to identify sentences that contain factual assertions
- * (numbers, percentages, absolute statements) rather than opinions.
- *
- * @param snippet - Article snippet text.
- * @param title - Article headline.
- * @returns Array of extracted claim strings (max 3).
- */
-function extractCheckableClaims(snippet: string, title: string): string[] {
-  const claims: string[] = [];
-  const combined = `${title}. ${snippet}`;
-
-  // Split into sentences
-  const sentences = combined
-    .split(/[.!?]+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 15);
-
-  for (const sentence of sentences) {
-    if (claims.length >= 3) break;
-
-    // Heuristic: sentences with numbers, percentages, or strong claims
-    const hasNumbers = /\d+/.test(sentence);
-    const hasPercent = /%|percent|crore|lakh|billion|million/.test(sentence.toLowerCase());
-    const hasAbsolute = /first|largest|never|always|all |every |no one|highest|lowest|record/i.test(sentence);
-    const hasClaimVerb = /said|claimed|stated|announced|declared|alleged/i.test(sentence);
-
-    if (hasNumbers || hasPercent || hasAbsolute || hasClaimVerb) {
-      claims.push(sentence);
-    }
-  }
-
-  // If no heuristic claims found, use the title as a claim
-  if (claims.length === 0 && title.length > 15) {
-    claims.push(title);
-  }
-
-  return claims;
+return verdicts;
 }
